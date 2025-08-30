@@ -1,0 +1,68 @@
+# Project Overview
+
+This project analyzes Amazon product review data to understand customer sentiment, group products into categories based on review content, and generate summarized recommendations. The goal is to provide insights into product performance and facilitate better decision-making based on customer feedback.
+
+The project involves several key steps:
+1.  **Data Loading and Preprocessing:** Merging review data from multiple sources and cleaning the text data.
+2.  **Sentiment Analysis:** Training a sentiment classification model to categorize reviews as Positive, Neutral, or Negative.
+3.  **Product Category Clustering:** Grouping similar product categories using transfer learning embeddings.
+4.  **Review Summarization:** Generating recommendation articles for product clusters based on extracted insights from reviews.
+5.  **Experiment Tracking:** Utilizing MLflow and Weights & Biases to track model training and evaluation.
+6.  **Deployment:** Setting up a Gradio application to showcase the sentiment analysis and review summarization components.
+
+## Setup and Installation
+
+To run this project locally or reproduce the steps in a Colab environment, follow these instructions:
+
+1.  **Clone the Repository:** If you are using a version-controlled environment, clone the project repository.
+2.  **Install Dependencies:** Ensure you have Python installed. Then, navigate to the project directory and install the required libraries using the provided `requirements.txt` file.
+
+    ```
+    pip install -r requirements.txt
+    ```
+
+## Task 1: Review Classification
+
+### Data Preprocessing
+- **Data Source:** Merged three CSV files containing Amazon product reviews to create a single, comprehensive dataset.
+- **Missing Data:** Handled missing values in the `reviews.rating` and `reviews.text` columns by removing rows to ensure data integrity for model training.
+- **Sentiment Mapping:** Mapped the 1-to-5-star ratings to three sentiment classes:
+    -   1-2 stars: Negative
+    -   3 stars: Neutral
+    -   4-5 stars: Positive
+- **Balancing:** Addressed class imbalance by using a combination of down-sampling the majority class (`Positive`) and up-sampling the minority classes (`Neutral` and `Negative`) to create a balanced dataset for training.
+
+### Model Training
+- **Model:** Used a pre-trained `distilbert-base-uncased` model for sequence classification, leveraging the Hugging Face `Trainer` to fine-tune it on the balanced dataset.
+- **Hyperparameters:**
+    -   `num_train_epochs`: 3
+    -   `per_device_train_batch_size`: 16
+    -   `per_device_eval_batch_size`: 64
+    -   `warmup_steps`: 500
+    -   `weight_decay`: 0.01
+
+### Evaluation
+- **Metrics:** Evaluated the model's performance on a held-out test set using accuracy, precision, recall, and F1-score.
+- **Results:** The model achieved an accuracy of approximately **92.5%**.
+
+## Task 2: Product Category Clustering
+
+- **Methodology:** Used a pre-trained **Sentence Transformer model (`all-MiniLM-L6-v2`)** to generate high-quality embeddings for each unique product category.
+- **Clustering:** Applied the **K-Means algorithm** with 5 clusters to group the categories based on their semantic similarity. This simplified the dataset into a few meta-categories.
+
+## Task 3: Review Summarization
+
+- **Methodology:** Implemented a prompt-based summarization approach using a pre-trained **generative AI model (`facebook/bart-large-cnn`)**.
+- **Article Generation:** For each product cluster, a detailed prompt was created containing information about the top 3 products, their key strengths (from positive reviews), common complaints (from negative reviews), and the single worst product with reasons to avoid it.
+- **Model Output:** The model generated short, readable recommendation articles by synthesizing these structured insights.
+
+## Task 4: Deployment
+
+- **Interface:** A Gradio application was built to serve as a user interface.
+- **Functionality:** The app features a tab for **Sentiment Analysis**, where users can input a review and get a sentiment prediction, and a tab for **Product Cluster Summaries**, where users can select a product cluster from a dropdown to view its generated recommendation article.
+- **Deployment Files:** The necessary `app.py` and `requirements.txt` files, along with pre-computed summary data in JSON format, were generated to facilitate easy deployment on platforms like Hugging Face Spaces.
+
+## Experiment Tracking
+
+- **MLflow:** MLflow was integrated to track and manage the model training lifecycle. Key hyperparameters like epochs and learning rate, as well as evaluation metrics (accuracy, precision, recall, F1-score), were logged to an MLflow run.
+- **Weights & Biases (W&B):** W&B was also used to track the training process. The `Trainer` was configured to report to W&B, allowing for real-time visualization of metrics, model performance, and easy comparison of different runs in the W&B dashboard.
